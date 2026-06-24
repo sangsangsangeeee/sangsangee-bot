@@ -3,6 +3,8 @@ import { Bot } from "grammy";
 import { loadConfig } from "./config.ts";
 import { buildSpec } from "./spec/builder.ts";
 import { writeSpec } from "./spec/writer.ts";
+import { extractSpec } from "./llm/spec-extractor.ts";
+import type { Context } from "grammy";
 
 const config = loadConfig();
 
@@ -43,17 +45,56 @@ bot.use(async (ctx, next) => {
 bot.command("start", (ctx) =>
   ctx.reply(
     [
-      "👋 I collect product specs.",
+      "👋 I turn product ideas into specs.",
       "",
-      "/new <title> — start a spec (A-0: creates a draft immediately)",
-      "/help — what I can do",
+      "• Just describe what you want to build — I'll structure it into a spec.",
+      "• /new <title> — quick draft, no AI",
+      "• /help — details",
+      "",
+      config.aiEnabled ? "🧠 AI spec extraction: ON" : "⚠️ AI off (set CLAUDE_CODE_OAUTH_TOKEN to enable)",
     ].join("\n"),
   ),
 );
 
 bot.command("help", (ctx) =>
-  ctx.reply("Send /new <title>. In A-1 I'll ask follow-up questions for requirements, design, and constraints."),
+  ctx.reply(
+    [
+      "Describe a product in your own words and send it — I run it through Claude (your subscription) and write a structured spec to the meta-repo inbox.",
+      "/spec <description> — same, explicitly.",
+      "/new <title> — fast path, no AI.",
+    ].join("\n"),
+  ),
 );
+
+/** Run the AI extractor over free text and persist the resulting spec. */
+async function handleSpecText(ctx: Context, text: string) {
+  if (!text.trim()) return ctx.reply("Tell me what to build, e.g. “a CLI that renames photos by EXIF date”.");
+  if (!config.aiEnabled) {
+    return ctx.reply("AI spec extraction is off. Set CLAUDE_CODE_OAUTH_TOKEN, or use /new <title> for a quick draft.");
+  }
+  const note = await ctx.reply("🧠 Structuring your idea into a spec…");
+  try {
+    const spec = await extractSpec({
+      conversation: text,
+      user: ctx.from?.username ?? String(ctx.from?.id ?? "unknown"),
+      now: new Date().toISOString(),
+      model: config.aiModel,
+    });
+    await writeSpec(spec, config);
+    await ctx.api.editMessageText(
+      note.chat.id,
+      note.message_id,
+      `📝 Spec created: ${spec.slug}\nType: ${spec.type} · ${spec.requirements.length} requirement(s)\nWritten to the meta-repo inbox.`,
+    );
+    console.log(`AI spec written: ${spec.slug}`);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    await ctx.api.editMessageText(note.chat.id, note.message_id, `⚠️ Couldn't build the spec: ${msg}`);
+    console.error("extractSpec failed:", e);
+  }
+}
+
+bot.command("spec", (ctx) => handleSpecText(ctx, ctx.match ?? ""));
 
 bot.command("new", async (ctx) => {
   const title = ctx.match?.trim();
@@ -66,6 +107,12 @@ bot.command("new", async (ctx) => {
   const res = await writeSpec(spec, config);
   await ctx.reply(`📝 Draft spec created: ${spec.slug}\nWritten to the meta-repo inbox.`);
   console.log(`spec written: ${res.dir}`);
+});
+
+// Any non-command text is treated as a product description.
+bot.on("message:text", (ctx) => {
+  if (ctx.message.text.startsWith("/")) return; // unknown command — ignore
+  return handleSpecText(ctx, ctx.message.text);
 });
 
 bot.catch((err) => console.error("bot error:", err));

@@ -5,6 +5,10 @@ export interface Config {
   specsDir: string;
   allowlist: number[];
   gitCommit: boolean;
+  /** True when a subscription OAuth token is present (CLAUDE_CODE_OAUTH_TOKEN). */
+  aiEnabled: boolean;
+  /** Model passed to the Agent SDK for spec extraction. */
+  aiModel: string;
 }
 
 export function loadConfig(): Config {
@@ -20,5 +24,7 @@ export function loadConfig(): Config {
     specsDir: resolve(process.env.SPECS_DIR ?? "../meta-repo/specs"),
     allowlist,
     gitCommit: (process.env.GIT_COMMIT ?? "false").toLowerCase() === "true",
+    aiEnabled: Boolean(process.env.CLAUDE_CODE_OAUTH_TOKEN),
+    aiModel: process.env.AI_MODEL ?? "claude-sonnet-4-6",
   };
 }
