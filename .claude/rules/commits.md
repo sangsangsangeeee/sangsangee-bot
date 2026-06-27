@@ -1,0 +1,41 @@
+# 커밋 규칙
+Conventional Commits를 따른다. 형식: `type(scope): subject`
+
+**제목(subject)**
+- 한글로 쓴다. 마침표 없음, 72자 이내, 개조식(명사형)으로 끝낸다.
+  예: "추가", "수정", "정리".
+- type·scope 토큰은 영어를 유지한다(`feat`, `fix`, `A-3`, `spec` 등).
+- "무엇을 했는지" 한 줄로 요약한다.
+
+**타입(type)**
+- `feat`: 새 동작 추가
+- `fix`: 버그 수정
+- `refactor`: 동작 변화 없는 구조 개선
+- `docs`: 문서만 변경
+- `chore`: 의존성·툴링·설정 변경
+- `test`: 테스트 추가/수정
+- `skeleton`: 새 영역의 최초 스캐폴드 (scope 생략)
+
+**스코프(scope)**
+- 로드맵 단계를 진전시키면 그 단계를 쓴다: `feat(A-3): ...`
+- 아니면 영역명을 쓴다: `spec`, `bot`, `config`, `llm`. 애매하면 생략.
+
+**본문(body, 선택)**
+- 제목 다음 빈 줄 뒤에 작성. "왜"를 설명한다(무엇은 제목이 이미 담음).
+- 72자에서 줄바꿈. 관련 로드맵 항목이나 contract를 언급한다.
+
+**규칙**
+- 커밋 1개 = 논리적 변경 1개. 리팩터와 기능을 섞지 않는다.
+- 비밀값을 커밋하지 않는다. `.env`는 gitignore 유지.
+- 스펙 스키마를 바꾸면 `src/spec/schema.ts`와
+  `meta-repo/specs/spec.schema.json`을 같은 커밋에서 함께 수정한다(contract 동기화).
+- 커밋은 요청받았을 때만 한다.
+
+**예시**
+```
+feat(A-4): Claude Agent SDK로 AI 스펙 추출 (구독 인증)
+fix: tsc용 .ts import 확장자 허용
+docs: 커밋 규칙 한글화
+```
+기존 영어 커밋(`feat(A-4): AI spec extraction…` 등)은 그대로 두고,
+이후 커밋부터 한글 제목을 쓴다.
