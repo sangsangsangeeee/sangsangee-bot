@@ -22,12 +22,12 @@ if (process.argv.includes("--demo-spec")) {
     now: new Date().toISOString(),
   });
   const res = await writeSpec(spec, config);
-  console.log(`✅ wrote demo spec → ${res.dir} (committed=${res.committed})`);
+  console.log(`✅ 데모 스펙 작성 완료 → ${res.dir} (committed=${res.committed})`);
   process.exit(0);
 }
 
 if (!config.botToken) {
-  console.error("BOT_TOKEN is empty. Copy .env.example to .env and set it, or run with --demo-spec.");
+  console.error("BOT_TOKEN이 비어 있습니다. .env.example을 .env로 복사해 설정하거나 --demo-spec으로 실행하세요.");
   process.exit(1);
 }
 
@@ -86,11 +86,11 @@ async function handleSpecText(ctx: Context, text: string) {
       note.message_id,
       `📝 Spec created: ${spec.slug}\nType: ${spec.type} · ${spec.requirements.length} requirement(s)\nWritten to the meta-repo inbox.`,
     );
-    console.log(`AI spec written: ${spec.slug}`);
+    console.log(`AI 스펙 작성됨: ${spec.slug}`);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await ctx.api.editMessageText(note.chat.id, note.message_id, `⚠️ Couldn't build the spec: ${msg}`);
-    console.error("extractSpec failed:", e);
+    console.error("extractSpec 실패:", e);
   }
 }
 
@@ -106,7 +106,7 @@ bot.command("new", async (ctx) => {
   });
   const res = await writeSpec(spec, config);
   await ctx.reply(`📝 Draft spec created: ${spec.slug}\nWritten to the meta-repo inbox.`);
-  console.log(`spec written: ${res.dir}`);
+  console.log(`스펙 작성됨: ${res.dir}`);
 });
 
 // Any non-command text is treated as a product description.
@@ -115,7 +115,7 @@ bot.on("message:text", (ctx) => {
   return handleSpecText(ctx, ctx.message.text);
 });
 
-bot.catch((err) => console.error("bot error:", err));
+bot.catch((err) => console.error("봇 에러:", err));
 
-console.log("Bot starting (long polling)…");
+console.log("봇 시작 중 (롱폴링)…");
 bot.start();

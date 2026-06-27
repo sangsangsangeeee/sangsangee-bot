@@ -46,7 +46,7 @@ export async function extractSpec(input: ExtractInput): Promise<ProjectSpec> {
     }
   }
 
-  if (!resultText) throw new Error("Agent SDK returned no result");
+  if (!resultText) throw new Error("Agent SDK가 결과를 반환하지 않았습니다");
 
   const parsed = parseJsonObject(resultText);
   const slug = slugify(String(parsed.title ?? input.conversation.slice(0, 40)));
@@ -70,6 +70,6 @@ export async function extractSpec(input: ExtractInput): Promise<ProjectSpec> {
 function parseJsonObject(text: string): Record<string, any> {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
-  if (start < 0 || end <= start) throw new Error(`No JSON object in model output: ${text.slice(0, 200)}`);
+  if (start < 0 || end <= start) throw new Error(`모델 출력에 JSON 객체가 없습니다: ${text.slice(0, 200)}`);
   return JSON.parse(text.slice(start, end + 1));
 }
