@@ -21,21 +21,6 @@ bot.use(async (ctx, next) => {
   await ctx.reply("죄송해요, 허용된 사용자가 아니에요.");
 });
 
-// --- 커맨드 ----------------------------------------------------------------
-bot.command("start", (ctx) =>
-  ctx.reply(
-    [
-      "👋 무엇이든 물어보세요 — Claude가 답해 드려요.",
-      "",
-      config.aiEnabled ? "🧠 AI: 켜짐" : "⚠️ AI 꺼짐 (CLAUDE_CODE_OAUTH_TOKEN을 설정하면 켜져요)",
-    ].join("\n"),
-  ),
-);
-
-bot.command("help", (ctx) =>
-  ctx.reply("메시지를 보내면 Claude(당신의 구독)로 처리해 답변을 돌려드려요."),
-);
-
 /** 사용자 텍스트를 Claude에 보내고 답변을 돌려준다. */
 async function handleMessage(ctx: Context, text: string) {
   if (!text.trim()) return ctx.reply("메시지를 입력해 주세요.");
@@ -54,9 +39,9 @@ async function handleMessage(ctx: Context, text: string) {
   }
 }
 
-// 커맨드가 아닌 텍스트는 Claude에게 보낸다.
+// 모든 텍스트 메시지를 Claude에게 보낸다. (커맨드는 아직 없음 — /로 시작하면 무시)
 bot.on("message:text", (ctx) => {
-  if (ctx.message.text.startsWith("/")) return; // 알 수 없는 커맨드 — 무시
+  if (ctx.message.text.startsWith("/")) return;
   return handleMessage(ctx, ctx.message.text);
 });
 

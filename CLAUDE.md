@@ -4,7 +4,7 @@
 Bun + grammY 채팅봇. 기능은 하나씩 붙여 나간다.
 
 ## Layout
-- `src/index.ts` — grammY 엔트리 + 커맨드(`/start`, `/help`) + 텍스트 핸들러.
+- `src/index.ts` — grammY 엔트리 + allowlist 미들웨어 + 텍스트 핸들러(커맨드 없음).
 - `src/config.ts` — 환경변수(BOT_TOKEN, ALLOWLIST, CLAUDE_CODE_OAUTH_TOKEN, AI_MODEL).
 - `src/llm/chat.ts` — Claude Agent SDK 호출(메시지 → 답변 텍스트). 텍스트 전용, 도구 미부여.
 
