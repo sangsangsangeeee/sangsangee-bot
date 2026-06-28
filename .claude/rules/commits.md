@@ -27,15 +27,12 @@ Conventional Commits를 따른다. 형식: `type(scope): subject`
 **규칙**
 - 커밋 1개 = 논리적 변경 1개. 리팩터와 기능을 섞지 않는다.
 - 비밀값을 커밋하지 않는다. `.env`는 gitignore 유지.
-- 스펙 스키마를 바꾸면 `src/spec/schema.ts`와
-  `meta-repo/specs/spec.schema.json`을 같은 커밋에서 함께 수정한다(contract 동기화).
 - 커밋은 요청받았을 때만 한다.
 
 **예시**
 ```
-feat(A-4): Claude Agent SDK로 AI 스펙 추출 (구독 인증)
+feat(bot): Claude 답변을 텔레그램으로 회신
 fix: tsc용 .ts import 확장자 허용
 docs: 커밋 규칙 한글화
 ```
-기존 영어 커밋(`feat(A-4): AI spec extraction…` 등)은 그대로 두고,
-이후 커밋부터 한글 제목을 쓴다.
+기존 영어 커밋은 그대로 두고, 이후 커밋부터 한글 제목을 쓴다.
