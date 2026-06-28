@@ -5,9 +5,9 @@ export interface Config {
   specsDir: string;
   allowlist: number[];
   gitCommit: boolean;
-  /** True when a subscription OAuth token is present (CLAUDE_CODE_OAUTH_TOKEN). */
+  /** 구독 OAuth 토큰(CLAUDE_CODE_OAUTH_TOKEN)이 있으면 true. */
   aiEnabled: boolean;
-  /** Model passed to the Agent SDK for spec extraction. */
+  /** 스펙 추출 시 Agent SDK에 넘기는 모델. */
   aiModel: string;
 }
 

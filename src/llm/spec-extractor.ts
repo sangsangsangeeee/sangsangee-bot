@@ -3,10 +3,10 @@ import { specSchema, type ProjectSpec } from "../spec/schema.ts";
 import { slugify } from "../spec/builder.ts";
 
 export interface ExtractInput {
-  /** Free-form requirement text from the user (any language). */
+  /** 사용자의 자유 형식 요구사항 텍스트(언어 무관). */
   conversation: string;
   user?: string;
-  now: string; // ISO timestamp — passed in, never generated here
+  now: string; // ISO 타임스탬프 — 외부에서 주입, 여기서 생성하지 않음
   model: string;
 }
 
@@ -23,11 +23,11 @@ Reply with ONE JSON object and nothing else — no prose, no markdown code fence
 Infer reasonable defaults when the input is sparse, but keep it minimal and faithful to what the user asked.`;
 
 /**
- * Run the Agent SDK (on the user's Claude subscription) to structure free text
- * into a draft spec, then validate it against the shared schema.
+ * Agent SDK(사용자의 Claude 구독)를 돌려 자유 텍스트를 draft 스펙으로 구조화한
+ * 뒤, 공유 schema로 검증한다.
  *
- * Auth: relies on CLAUDE_CODE_OAUTH_TOKEN in the environment (no API key).
- * Text-only — no file/bash tools are granted.
+ * 인증: 환경의 CLAUDE_CODE_OAUTH_TOKEN에 의존한다(API key 없음).
+ * 텍스트 전용 — file/bash 도구는 부여하지 않는다.
  */
 export async function extractSpec(input: ExtractInput): Promise<ProjectSpec> {
   let resultText = "";
@@ -36,7 +36,7 @@ export async function extractSpec(input: ExtractInput): Promise<ProjectSpec> {
     options: {
       model: input.model,
       systemPrompt: SYSTEM,
-      allowedTools: [], // no tools — pure text transformation
+      allowedTools: [], // 도구 없음 — 순수 텍스트 변환
       permissionMode: "bypassPermissions",
       maxTurns: 1,
     },
@@ -66,7 +66,7 @@ export async function extractSpec(input: ExtractInput): Promise<ProjectSpec> {
   });
 }
 
-/** Pull the first {...} block out of the model's reply and parse it. */
+/** 모델 응답에서 첫 {...} 블록을 뽑아 파싱한다. */
 function parseJsonObject(text: string): Record<string, any> {
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");

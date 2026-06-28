@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 /**
- * Mirror of meta-repo/specs/spec.schema.json. Keep these in sync — this is the
- * one contract both repos share. (A later step can codegen this from the JSON
- * Schema; for the skeleton we maintain it by hand.)
+ * meta-repo/specs/spec.schema.json의 미러. 항상 동기화 유지 — 두 repo가 공유하는
+ * 하나의 contract다. (이후 단계에서 JSON Schema로부터 codegen 가능. skeleton
+ * 단계에서는 수동으로 관리한다.)
  */
 export const specSchema = z.object({
   id: z.string().min(1),

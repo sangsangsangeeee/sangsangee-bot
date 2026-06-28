@@ -10,8 +10,8 @@ export interface WriteResult {
 }
 
 /**
- * Write a spec into `${specsDir}/inbox/<slug>/` as spec.json + spec.md.
- * Optionally git-commits it inside the meta-repo.
+ * 스펙을 `${specsDir}/inbox/<slug>/`에 spec.json + spec.md로 쓴다.
+ * 선택적으로 meta-repo 안에서 git 커밋한다.
  */
 export async function writeSpec(spec: ProjectSpec, config: Config): Promise<WriteResult> {
   const dir = join(config.specsDir, "inbox", spec.slug);
