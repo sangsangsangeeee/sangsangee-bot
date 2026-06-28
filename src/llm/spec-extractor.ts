@@ -1,6 +1,6 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
-import { specSchema, type ProjectSpec } from "../spec/schema.ts";
-import { slugify } from "../spec/builder.ts";
+import type { ProjectSpec } from "../spec/schema.ts";
+import { buildSpec } from "../spec/builder.ts";
 
 export interface ExtractInput {
   /** 사용자의 자유 형식 요구사항 텍스트(언어 무관). */
@@ -49,20 +49,18 @@ export async function extractSpec(input: ExtractInput): Promise<ProjectSpec> {
   if (!resultText) throw new Error("Agent SDK가 결과를 반환하지 않았습니다");
 
   const parsed = parseJsonObject(resultText);
-  const slug = slugify(String(parsed.title ?? input.conversation.slice(0, 40)));
 
-  return specSchema.parse({
-    id: `${input.now.slice(0, 10)}-${slug}`,
-    slug,
-    title: parsed.title ?? "Untitled",
-    type: parsed.type ?? "other",
-    summary: parsed.summary ?? parsed.title ?? input.conversation,
-    requirements: Array.isArray(parsed.requirements) ? parsed.requirements : [],
-    design: parsed.design && typeof parsed.design === "object" ? parsed.design : {},
-    constraints: Array.isArray(parsed.constraints) ? parsed.constraints : [],
-    status: "draft",
-    source: { channel: "telegram", user: input.user },
-    createdAt: input.now,
+  // 파싱된 JSON을 DraftInput으로 매핑하고, 스펙 조립·검증은 buildSpec에 위임한다.
+  // (id/slug 생성, 기본값 채우기, status·source 강제는 모두 buildSpec이 처리.)
+  return buildSpec({
+    title: String(parsed.title ?? input.conversation.slice(0, 40)),
+    type: parsed.type,
+    summary: parsed.summary ?? parsed.title,
+    requirements: Array.isArray(parsed.requirements) ? parsed.requirements : undefined,
+    designNotes: parsed.design && typeof parsed.design === "object" ? parsed.design.notes : undefined,
+    constraints: Array.isArray(parsed.constraints) ? parsed.constraints : undefined,
+    user: input.user,
+    now: input.now,
   });
 }
 
