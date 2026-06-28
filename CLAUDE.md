@@ -10,8 +10,7 @@ Bun + grammY 채팅봇. 기능은 하나씩 붙여 나간다.
 
 ## Auth
 Claude 호출은 사용자 구독의 OAuth 토큰(`CLAUDE_CODE_OAUTH_TOKEN`)에 의존한다(API key 아님).
-`claude setup-token`으로 발급한다. `ANTHROPIC_API_KEY`는 설정하지 않는다 — 우선순위가
-높아 API로 과금된다.
+`claude setup-token`으로 발급한다. `ANTHROPIC_API_KEY`는 설정하지 않는다 — 우선순위가 높아 API로 과금된다.
 
 ## Run
 ```bash
