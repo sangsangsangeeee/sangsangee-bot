@@ -9,8 +9,8 @@ import type { Context } from "grammy";
 const config = loadConfig();
 
 /**
- * Demo mode (no Telegram needed): writes one spec to the meta-repo inbox so the
- * end-to-end contract can be verified. Run: `bun run src/index.ts --demo-spec`
+ * 데모 모드(텔레그램 불필요): 스펙 1개를 meta-repo inbox에 써서 end-to-end
+ * contract를 검증한다. 실행: `bun run src/index.ts --demo-spec`
  */
 if (process.argv.includes("--demo-spec")) {
   const spec = buildSpec({
@@ -33,25 +33,25 @@ if (!config.botToken) {
 
 const bot = new Bot(config.botToken);
 
-// --- middleware: allowlist -------------------------------------------------
+// --- 미들웨어: allowlist ---------------------------------------------------
 bot.use(async (ctx, next) => {
-  if (config.allowlist.length === 0) return next(); // dev: open
+  if (config.allowlist.length === 0) return next(); // 개발: 전원 통과
   const id = ctx.from?.id;
   if (id && config.allowlist.includes(id)) return next();
-  await ctx.reply("Sorry, you're not on the allowlist.");
+  await ctx.reply("죄송해요, 허용된 사용자가 아니에요.");
 });
 
-// --- commands (A-0 minimal) ------------------------------------------------
+// --- 커맨드 (A-0 최소 구현) ------------------------------------------------
 bot.command("start", (ctx) =>
   ctx.reply(
     [
-      "👋 I turn product ideas into specs.",
+      "👋 제품 아이디어를 스펙으로 만들어 드려요.",
       "",
-      "• Just describe what you want to build — I'll structure it into a spec.",
-      "• /new <title> — quick draft, no AI",
-      "• /help — details",
+      "• 만들고 싶은 걸 그냥 설명해 주세요 — 스펙으로 구조화해 드릴게요.",
+      "• /new <제목> — AI 없이 빠른 초안",
+      "• /help — 자세히 보기",
       "",
-      config.aiEnabled ? "🧠 AI spec extraction: ON" : "⚠️ AI off (set CLAUDE_CODE_OAUTH_TOKEN to enable)",
+      config.aiEnabled ? "🧠 AI 스펙 추출: 켜짐" : "⚠️ AI 꺼짐 (CLAUDE_CODE_OAUTH_TOKEN을 설정하면 켜져요)",
     ].join("\n"),
   ),
 );
@@ -59,20 +59,20 @@ bot.command("start", (ctx) =>
 bot.command("help", (ctx) =>
   ctx.reply(
     [
-      "Describe a product in your own words and send it — I run it through Claude (your subscription) and write a structured spec to the meta-repo inbox.",
-      "/spec <description> — same, explicitly.",
-      "/new <title> — fast path, no AI.",
+      "만들고 싶은 제품을 자유롭게 설명해서 보내 주세요 — Claude(당신의 구독)로 처리해 구조화된 스펙을 meta-repo inbox에 기록해요.",
+      "/spec <설명> — 위와 동일, 명시적으로 호출.",
+      "/new <제목> — AI 없이 빠르게.",
     ].join("\n"),
   ),
 );
 
-/** Run the AI extractor over free text and persist the resulting spec. */
+/** 자유 텍스트에 AI 추출기를 돌리고 생성된 스펙을 저장한다. */
 async function handleSpecText(ctx: Context, text: string) {
-  if (!text.trim()) return ctx.reply("Tell me what to build, e.g. “a CLI that renames photos by EXIF date”.");
+  if (!text.trim()) return ctx.reply("무엇을 만들지 알려 주세요. 예: “EXIF 날짜로 사진 이름을 바꾸는 CLI”.");
   if (!config.aiEnabled) {
-    return ctx.reply("AI spec extraction is off. Set CLAUDE_CODE_OAUTH_TOKEN, or use /new <title> for a quick draft.");
+    return ctx.reply("AI 스펙 추출이 꺼져 있어요. CLAUDE_CODE_OAUTH_TOKEN을 설정하거나, /new <제목>으로 빠른 초안을 만들어 주세요.");
   }
-  const note = await ctx.reply("🧠 Structuring your idea into a spec…");
+  const note = await ctx.reply("🧠 아이디어를 스펙으로 구조화하는 중…");
   try {
     const spec = await extractSpec({
       conversation: text,
@@ -84,12 +84,12 @@ async function handleSpecText(ctx: Context, text: string) {
     await ctx.api.editMessageText(
       note.chat.id,
       note.message_id,
-      `📝 Spec created: ${spec.slug}\nType: ${spec.type} · ${spec.requirements.length} requirement(s)\nWritten to the meta-repo inbox.`,
+      `📝 스펙 생성 완료: ${spec.slug}\n타입: ${spec.type} · 요구사항 ${spec.requirements.length}개\nmeta-repo inbox에 기록했어요.`,
     );
     console.log(`AI 스펙 작성됨: ${spec.slug}`);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    await ctx.api.editMessageText(note.chat.id, note.message_id, `⚠️ Couldn't build the spec: ${msg}`);
+    await ctx.api.editMessageText(note.chat.id, note.message_id, `⚠️ 스펙을 만들지 못했어요: ${msg}`);
     console.error("extractSpec 실패:", e);
   }
 }
@@ -98,20 +98,20 @@ bot.command("spec", (ctx) => handleSpecText(ctx, ctx.match ?? ""));
 
 bot.command("new", async (ctx) => {
   const title = ctx.match?.trim();
-  if (!title) return ctx.reply("Usage: /new <title>");
+  if (!title) return ctx.reply("사용법: /new <제목>");
   const spec = buildSpec({
     title,
     user: ctx.from?.username ?? String(ctx.from?.id ?? "unknown"),
     now: new Date().toISOString(),
   });
   const res = await writeSpec(spec, config);
-  await ctx.reply(`📝 Draft spec created: ${spec.slug}\nWritten to the meta-repo inbox.`);
+  await ctx.reply(`📝 초안 스펙 생성 완료: ${spec.slug}\nmeta-repo inbox에 기록했어요.`);
   console.log(`스펙 작성됨: ${res.dir}`);
 });
 
-// Any non-command text is treated as a product description.
+// 커맨드가 아닌 텍스트는 제품 설명으로 처리한다.
 bot.on("message:text", (ctx) => {
-  if (ctx.message.text.startsWith("/")) return; // unknown command — ignore
+  if (ctx.message.text.startsWith("/")) return; // 알 수 없는 커맨드 — 무시
   return handleSpecText(ctx, ctx.message.text);
 });
 
