@@ -2,6 +2,7 @@
 import { Bot } from "grammy";
 import { loadConfig } from "./config.ts";
 import { chat } from "./llm/chat.ts";
+import { readSession, writeSession, isSessionFresh } from "./memory/store.ts";
 import type { Context } from "grammy";
 
 const config = loadConfig();
@@ -29,9 +30,25 @@ async function handleMessage(ctx: Context, text: string) {
   }
   const note = await ctx.reply("🧠 생각하는 중…");
   try {
-    const reply = await chat({ message: text, model: config.aiModel });
-    await ctx.api.editMessageText(note.chat.id, note.message_id, reply);
-    console.log(`Claude 응답 완료 (${reply.length}자)`);
+    // 사용자별 세션 키(단일 사용자라도 향후 확장 여지를 둔다).
+    const key = String(ctx.from?.id ?? "default");
+
+    // 이전 세션이 신선하면 그 맥락을 이어간다.
+    const session = await readSession(config.memoryDir, key);
+    const resume = isSessionFresh(session, config.sessionTtlMin)
+      ? session.sessionId ?? undefined
+      : undefined;
+
+    const res = await chat({ message: text, model: config.aiModel, resume });
+    await ctx.api.editMessageText(note.chat.id, note.message_id, res.text);
+
+    // 다음 턴에 이어갈 세션 포인터를 저장한다.
+    await writeSession(
+      config.memoryDir,
+      { sessionId: res.sessionId, lastActiveAt: new Date().toISOString() },
+      key,
+    );
+    console.log(`Claude 응답 완료 (${res.text.length}자, 세션 ${res.sessionId?.slice(0, 8) ?? "없음"})`);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     await ctx.api.editMessageText(note.chat.id, note.message_id, `⚠️ 답변을 만들지 못했어요: ${msg}`);
